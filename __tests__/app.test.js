@@ -2,7 +2,6 @@ const fs = require('fs');
 const pool = require('../lib/utils/pool');
 const request = require('supertest');
 const app = require('../lib/app');
-const ShortUrlService = require('../lib/services/ShortUrlService');
 const UserService = require('../lib/services/UserService');
 
 describe('shorten-be routes', () => {
@@ -21,8 +20,6 @@ describe('shorten-be routes', () => {
       email: 'test@test.com',
       password: 'password'
     });
-    
-    // console.log(user.id);
 
     await agent
       .post('/api/v1/auth/login')
@@ -43,26 +40,55 @@ describe('shorten-be routes', () => {
     expect(res.body).toEqual({
       id: expect.any(String),
       originalUrl: 'http://test.com/this/is/very/long', 
-      userId: 1
+      userId: user.id
     });
     
   });
 
 
-  // it('gets a list of links via GET', async () => {
-  //   await UserService.create({
-  //     email: 'test@test.com',
-  //     password: 'password'
-  //   });
+  it('gets a list of links via GET', async () => {
+    const agent = request.agent(app);
 
-  //   const links = await Promise.all(
-  //     [...Array(3)].map((_, i) => ShortUrlService.create({ url: `http://test.com/long/url/${i}` }))
-  //   ).catch();
+    const user = await UserService.create({
+      email: 'test@test.com',
+      password: 'password'
+    });
 
-  //   return request(app)
-  //     .get('/api/v1/shorten')
-  //     .then(res => {
-  //       expect(res.body).toEqual(expect.arrayContaining(links));
-  //     });
-  // });
+    await agent
+      .post('/api/v1/auth/login')
+      .send({
+        email: 'test@test.com',
+        password: 'password'
+      });
+
+    const linkOne = await agent
+      .post('/api/v1/shorten/')
+      .send({
+        id: 'bbb',
+        userId: user.id,
+        url: 'http://test.com/this/is/very/long'
+      });
+
+    const linkTwo = await agent
+      .post('/api/v1/shorten/')
+      .send({
+        id: 'ccc',
+        userId: user.id,
+        url: 'http://test.com/this/is/very/long/taketwo'
+      });
+
+    const linkThree = await agent
+      .post('/api/v1/shorten/')
+      .send({
+        id: 'ddd',
+        userId: user.id,
+        url: 'http://test.com/this/is/very/long/takethree'
+      });
+
+    return agent
+      .get('/api/v1/shorten')
+      .then(res => {
+        expect(res.body).toEqual(expect.arrayContaining([linkOne.body, linkTwo.body, linkThree.body]));
+      });
+  });
 });
