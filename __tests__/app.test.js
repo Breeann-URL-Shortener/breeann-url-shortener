@@ -122,22 +122,6 @@ describe('shorten-be routes', () => {
         url: 'http://test.com/this/is/very/long'
       });
 
-    await agent
-      .post('/api/v1/shorten/')
-      .send({
-        id: 'ccc',
-        userId: user2.id,
-        url: 'http://test.com/this/is/very/long/taketwo'
-      });
-
-    await agent
-      .post('/api/v1/shorten/')
-      .send({
-        id: 'eee',
-        userId: user2.id,
-        url: 'http://test.com/this/is/very/long/taketwo'
-      });
-
     const linkThree = await agent
       .post('/api/v1/shorten/')
       .send({
@@ -147,7 +131,7 @@ describe('shorten-be routes', () => {
       });
 
     return agent
-      .get('/api/v1/shorten')
+      .get(`/api/v1/shorten/${user.id}`)
       .then(res => {
         expect(res.body).toEqual(expect.arrayContaining([linkOne.body, linkThree.body]));
       });
