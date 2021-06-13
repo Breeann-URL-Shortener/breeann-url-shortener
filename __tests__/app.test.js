@@ -172,9 +172,9 @@ describe('shorten-be routes', () => {
         url: 'http://test.com/this/is/very/long/takethree'
       });
 
-      
+    console.log(linkTwo.body, 'linkTwo');
     await agent
-      .delete(`/api/v1/shorten/${linkTwo.id}`)
+      .delete(`/api/v1/shorten/${linkTwo.body.id}`)
     ;
 
     return agent
