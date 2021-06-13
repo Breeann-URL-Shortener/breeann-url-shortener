@@ -100,11 +100,6 @@ describe('shorten-be routes', () => {
       password: 'password3'
     });
 
-    const user2 = await UserService.create({
-      email: 'test4@test4.com',
-      password: 'password4'
-    });
-
     await agent
       .post('/api/v1/auth/login')
       .send({
@@ -136,4 +131,57 @@ describe('shorten-be routes', () => {
         expect(res.body).toEqual(expect.arrayContaining([linkOne.body, linkThree.body]));
       });
   });
+
+
+  it('gets deletes a Link by id', async () => {
+    const agent = request.agent(app);
+
+    const user = await UserService.create({
+      email: 'test3@test3.com',
+      password: 'password3'
+    });
+
+    await agent
+      .post('/api/v1/auth/login')
+      .send({
+        email: 'test3@test3.com',
+        password: 'password3'
+      });
+
+    const linkOne = await agent
+      .post('/api/v1/shorten/')
+      .send({
+        id: 'bbb',
+        userId: user.id,
+        url: 'http://test.com/this/is/very/long'
+      });
+
+    const linkTwo = await agent
+      .post('/api/v1/shorten/')
+      .send({
+        id: 'fff',
+        userId: user.id,
+        url: 'http://test.com/this/is/very/long/taketwo'
+      });
+
+    const linkThree = await agent
+      .post('/api/v1/shorten/')
+      .send({
+        id: 'ddd',
+        userId: user.id,
+        url: 'http://test.com/this/is/very/long/takethree'
+      });
+
+      
+    await agent
+      .delete(`/api/v1/shorten/${linkTwo.id}`)
+    ;
+
+    return agent
+      .get(`/api/v1/shorten/${user.id}`)
+      .then(res => {
+        expect(res.body).toEqual(expect.arrayContaining([linkOne.body, linkThree.body]));
+      });
+  });
+
 });
